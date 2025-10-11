@@ -1,7 +1,5 @@
 -module(lib_misc).
 
-%% commonly used routines
-
 -export([consult/1,
 	 dump/2, 
 	 first/1, 

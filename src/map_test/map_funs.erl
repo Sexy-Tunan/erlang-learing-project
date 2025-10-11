@@ -1,4 +1,3 @@
-
 -module(map_funs).
 -export([map_search_pred/2]).
 

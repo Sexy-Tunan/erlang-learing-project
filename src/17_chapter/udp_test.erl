@@ -4,7 +4,7 @@
 start_server() ->
     spawn(fun() -> server(4000) end).
 
-%% The server 		  
+%% server
 server(Port) ->
     {ok, Socket} = gen_udp:open(Port, [binary]),
     io:format("server opened socket:~p~n",[Socket]),
@@ -23,7 +23,7 @@ loop(Socket) ->
 fac(0) -> 1;
 fac(N) -> N * fac(N-1).
 
-%% The client
+%% client
 
 client(N) ->
     {ok, Socket} = gen_udp:open(0, [binary]),
