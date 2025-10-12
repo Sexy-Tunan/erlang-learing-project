@@ -31,16 +31,29 @@ EBIN_DIR = ebin
 # 优化，上面的两种做法会漏掉 src 目录下同一层级的直接的 .erl 文件（不在子目录中的那些）。
 # src/foo.erl             没被匹配到
 # src/subdir/bar.erl      被匹配到了
-SOURCES = $(foreach dir,$(SRC_DIR),$(wildcard $(dir)/*.erl) $(wildcard $(dir)/**/*.erl))
+# SOURCES = $(foreach dir,$(SRC_DIR),$(wildcard $(dir)/*.erl) $(wildcard $(dir)/**/*.erl))
+SOURCES := $(shell find $(SRC_DIR) -type f -name "*.erl")
 
-# 对应模块名（去掉 .erl 后缀)
-# BEAMS = $(SOURCES:.erl=)
-# 生成对应的 .beam 文件路径（保持目录结构）并存放在ebin目录下
-BEAMS = $(patsubst $(SRC_DIR)/%.erl,$(EBIN_DIR)/%.beam,$(SOURCES))
-# 编译规则：将 .erl 编译成 .beam 并放入 ebin 中对应目录
-$(EBIN_DIR)/%.beam: $(SRC_DIR)/%.erl
-	@mkdir -p $(dir $@)
-	erlc -W -o $(dir $@) $<
+# ① 生成对应的 .beam 文件路径（保持目录结构）并存放在ebin目录下  例如/src/temp/test.erl --> /ebin/temp/test.beam
+# BEAMS = $(patsubst $(SRC_DIR)/%.erl,$(EBIN_DIR)/%.beam,$(SOURCES))
+# $(EBIN_DIR)/%.beam: $(SRC_DIR)/%.erl
+# 	@mkdir -p $(dir $@)
+# 	erlc -W -o $(dir $@) $<
+
+
+# ② 生成对应的 .beam文件路径 (不保持与src的目录结构一致，全都放到ebin目录之下，无子目录)
+BEAMS = $(patsubst %.erl,$(EBIN_DIR)/%.beam,$(notdir $(SOURCES)))
+$(EBIN_DIR)/%.beam: 
+	@mkdir -p $(EBIN_DIR)
+	@src_file=$$(find $(SRC_DIR) -type f -name "$(basename $(notdir $@)).erl"); \
+	if [ -n "$$src_file" ]; then \
+		echo "Compiling $$src_file → $(EBIN_DIR)/"; \
+		erlc -W -o $(EBIN_DIR) $$src_file; \
+	else \
+		echo "Source file for $@ not found."; \
+		exit 1; \
+	fi
+
 
 # 特殊文件单独编译
 # specia1.beam: src/special/specia1.erl
