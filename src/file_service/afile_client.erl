@@ -12,6 +12,7 @@ get_file(Server, File_Name) ->
     Server ! {self(), {get_file, File_Name}},
     receive
         {Server, Content} ->
+            file:read_file(Filename)
             Content
     end. 
 
