@@ -6,6 +6,7 @@
 run() ->
 	{ok, LogIoDevice} = file:open(?LOG_FILE_PATH, [append, {encoding,utf8}]),
 	{ok, SuccessIoDevice} = file:open(?SUCCESS_FILE_PATH, [append, {encoding,utf8}]),
+	spawn(fun() -> tail_b:run() end),
 	loop(0,LogIoDevice,SuccessIoDevice),
 	file:close(LogIoDevice),
 	file:close(SuccessIoDevice),

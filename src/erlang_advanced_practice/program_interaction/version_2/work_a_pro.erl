@@ -48,9 +48,6 @@ get_log_file_last_lines(N) ->
 %%			StrList = binary_to_list(Bin)
 			Lines = binary:split(NormalBin, <<"\n">>, [global]),  % 返回的行数据列表
 			Total = length(Lines),
-			io:format("总行数 ~p~n",[Total]),
-			io:format(Bin),
-			io:format("总行数 ~p~n",[Total]),
 
 			OutPutLines =
 				case Total - N > 0 of

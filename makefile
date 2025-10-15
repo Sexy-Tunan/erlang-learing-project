@@ -72,7 +72,7 @@ compile: $(BEAMS)
 PA_PATHS = -pa $(EBIN_DIR)
 
 application: compile
-	$(ERL) $(PA_PATHS) -s hello world
+	$(ERL) $(PA_PATHS) +S 16 -s hello world
 
 # ----------------------------------------
 # 清理
