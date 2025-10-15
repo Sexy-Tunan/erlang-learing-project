@@ -10,7 +10,7 @@ run() ->
 	HugeList = lists:seq(1,10000),
 	SmallList = [1],
 
-	{Time1, _} = timer:tc(?MODULE, small_splice_huge, [SmallList,HugeList]),
+	{Time1, _} = timer:tc(?MODULE, small_splice_huge, [HugeList,SmallList]),
 	{Time2, _} = timer:tc(?MODULE, huge_splice_small, [HugeList,SmallList]),
 	io:format("列表A只有一个元素，列表B有一万个元素~n"),
 	io:format("A ++ B 的时间为 ~p 微秒 ~n",[Time1]),

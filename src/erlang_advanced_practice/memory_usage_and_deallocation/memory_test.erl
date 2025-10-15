@@ -13,7 +13,7 @@
 %% (2)数据全删除后。还占用了多少erlang进程、系统进程的内存。
 %% (3)执行erlang:garbage_collect()垃圾回收后，查看erlang进程、系统进程的内存。
 -module(memory_test).
--export([run/0]).
+-export([run/0, test_process_state/0, test_process/0, test_ets/0]).
 
 run() -> 
     test_process(),
@@ -22,9 +22,12 @@ run() ->
     ok.
 
 test_process() ->
-    % 往进程字典中插入一百万条记录
     io:format("=======================================================~n"),
     io:format("测试进程字典的对erlang和系统进程的占用~n"),
+    io:format("内存初始状态~n"),
+    check_memory(),
+    % 往进程字典中插入一百万条记录
+    io:format("=======================================================~n"),
     io:format("往进程字典中插入 100 万记录中...~n"),
     OneMillionElementList = lists:seq(1, 1000000),
     lists:foreach(fun(I) -> put(I,I*2) end, OneMillionElementList),
@@ -47,9 +50,12 @@ test_process() ->
     ok.
 
 test_ets() ->
-    % 往ets内存字典中插入一百条万记录
     io:format("=======================================================~n"),
     io:format("测试ets的对erlang和系统进程的占用~n"),
+    io:format("内存初始状态~n"),
+    check_memory(),
+    % 往ets内存字典中插入一百条万记录
+    io:format("=======================================================~n"),
     PrivateOrderSet = ets:new(temp_ets,[ordered_set, private]),
     OneMillionElementList = lists:seq(1, 1000000),
     io:format("往ets中插入 100 万记录中...~n"),
@@ -73,10 +79,14 @@ test_ets() ->
     ok.
 
 test_process_state() ->
+    io:format("=======================================================~n"),
+    io:format("测试进程状态对erlang和系统进程的占用~n"),
+    io:format("内存初始状态~n"),
+    check_memory(),
     % 使用map来存储状态
     % 往map中存储一百万个元素
     io:format("=======================================================~n"),
-    io:format("测试进程状态对erlang和系统进程的占用~n"),
+
     io:format("往maps中插入 100 条万记录中...~n"),
     MapState = maps:new(),
     NewMapState = store_in_maps(1,MapState),
@@ -115,7 +125,8 @@ check_memory() ->
     check_sys_process_memory().
 
 check_erlang_process_memory() ->
-    io:format("erlang 进程内存信息~p 单位:Byte~n",[process_info(self(),memory)]).
+    {memory,SizeByte} = process_info(self(),memory),
+    io:format("erlang 进程内存大小~.2f MB~n",[SizeByte/1024]).
 check_sys_process_memory() ->
     %% 用 ps 命令获取 RSS(kB) 和 VSZ(kB)
     Pid = os:getpid(),
