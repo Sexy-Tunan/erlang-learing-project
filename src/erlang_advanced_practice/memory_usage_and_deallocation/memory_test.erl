@@ -149,9 +149,9 @@ check_erlang_process_memory() ->
     Processes = proplists:get_value(processes,Mem),
     Ets =  proplists:get_value(ets,Mem),
 
-    io:format("total-------》erlang总内存：~.2f MB~n",[Total/1024]),
-    io:format("processes---》erlang所有进程占用的内存：~.2f MB~n",[Processes/1024]),
-    io:format("ets---------》为所有ets表分配的总内存：~.2f MB~n",[Ets/1024]).
+    io:format("total-------》erlang总内存：~.2f MB~n",[Total/(1024*1024)]),
+    io:format("processes---》erlang所有进程占用的内存：~.2f MB~n",[Processes/(1024*1024)]),
+    io:format("ets---------》为所有ets表分配的总内存：~.2f MB~n",[Ets/(1024*1024)]).
 
 check_sys_process_memory() ->
     %% 用 ps 命令获取 RSS(kB) 和 VSZ(kB)
