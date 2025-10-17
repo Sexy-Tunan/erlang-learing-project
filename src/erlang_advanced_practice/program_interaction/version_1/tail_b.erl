@@ -5,6 +5,7 @@
 -export([run/0]).
 
 -define(BE_MONITORED_FILE_PATH, "src/erlang_advanced_practice/program_interaction/version_1/manager.log").
+-define(BE_MONITORED_SUCCESS_FILE_PATH, "src/erlang_advanced_practice/program_interaction/version_1/success.log").
 -include_lib("kernel/include/file.hrl").
 
 run() ->
@@ -45,12 +46,18 @@ monitor_file_change(FilePath, LastSizeRead) ->
 					case file:read(FileIoDevice, NeedReadSize) of
 						{ok, AppendNewBin} -> io:format("~s", [AppendNewBin])
 					end,
-					file:close(FileIoDevice),
-					monitor_file_change(FilePath, NewSize);
-				false -> monitor_file_change(FilePath, LastSizeRead)
+					file:close(FileIoDevice);
+				false -> do_nothing
 			end
-	end.
-
+	end,
+	case file:read_file_info(?BE_MONITORED_SUCCESS_FILE_PATH) of
+		{ok, _FileInfo} ->
+			io:format("检测到成功日志文件存在，删除成功日志文件并退出程序~n"),
+			file:delete(?BE_MONITORED_SUCCESS_FILE_PATH),
+			exit(normal);
+		{error, enoent} -> do_nothing
+	end,
+	monitor_file_change(FilePath, NewSize).
 
 %% 返回的FileInfo是一个记录 -》 https://www.erlang.org/docs/28/apps/kernel/file.html#t:file_info/0
 %% 需引入对应的记录声明，否则报错解析不了file_info记录

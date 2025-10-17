@@ -5,23 +5,26 @@
 -define(SUCCESS_FILE_PATH, "src/erlang_advanced_practice/program_interaction/version_1/success.log").
 run() ->
 	{ok, LogIoDevice} = file:open(?LOG_FILE_PATH, [append, {encoding,utf8}]),
-	{ok, SuccessIoDevice} = file:open(?SUCCESS_FILE_PATH, [append, {encoding,utf8}]),
 	spawn(fun() -> tail_b:run() end),
-	loop(0,LogIoDevice,SuccessIoDevice),
+	loop(0,LogIoDevice),
 	file:close(LogIoDevice),
-	file:close(SuccessIoDevice),
+
 	ok.
 
-loop(WorkTime, LogIoDevice, SuccessIoDevice) ->
+loop(WorkTime, LogIoDevice) ->
 	erlang:send_after(2000, self(), {print, WorkTime + 2}),
 	receive
 		{print, NewWorkTime} ->
 			%% 此条当前时间输出用于确认是否是每隔两秒执行
 			io:format("now: ~p~n", [calendar:now_to_local_time(os:timestamp())]),
 			case NewWorkTime >= 30 of
-				true -> io:format(SuccessIoDevice, "success --> ~p~n", [NewWorkTime]), ok;
+				true ->
+					{ok, SuccessIoDevice} = file:open(?SUCCESS_FILE_PATH, [append, {encoding,utf8}, {create,true}]),
+					io:format(SuccessIoDevice, "success --> ~p~n", [NewWorkTime]),
+					file:close(SuccessIoDevice),
+					ok;
 				false -> io:format(LogIoDevice, "i am working ~p~n", [NewWorkTime]),
-					loop(NewWorkTime, LogIoDevice, SuccessIoDevice)
+					loop(NewWorkTime, LogIoDevice)
 			end
 	end.
 

@@ -18,9 +18,12 @@ print_lines(Bin) ->
 
 monitor() ->
 	receive
+		{start,{log,Bin}} -> print_lines(Bin),
+			monitor();
 		{log,Line} ->
 			io:format("~s", [Line]),
 			monitor();
-		{start,{log,Bin}} -> print_lines(Bin),
-			monitor()
+		{success, SuccessFilePath} ->
+			io:format("接受到成功信号，删除成功日志文件并退出程序~n"),
+			file:delete(SuccessFilePath)
 	end.

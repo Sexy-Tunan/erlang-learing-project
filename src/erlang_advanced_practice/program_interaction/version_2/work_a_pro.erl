@@ -9,17 +9,17 @@
 
 run() ->
 	{ok, LogIoDevice} = file:open(?LOG_FILE_PATH, [append, binary]),
-	{ok, SuccessIoDevice} = file:open(?SUCCESS_FILE_PATH, [append, binary]),
+
 %%	MonitorProcessName = rpc:call(?MONITOR_NODE,tail_b_pro,start,[]),
 	MonitorProcessName = log_monitor,
 	{MonitorProcessName, ?MONITOR_NODE} ! {start, get_log_file_last_lines(10)},
-	loop(0,LogIoDevice,SuccessIoDevice,MonitorProcessName,?MONITOR_NODE),
+	loop(0,LogIoDevice,MonitorProcessName,?MONITOR_NODE),
 	file:close(LogIoDevice),
-	file:close(SuccessIoDevice),
+
 	ok.
 
 
-loop(WorkTime, LogIoDevice, SuccessIoDevice,ProcessName, Node) ->
+loop(WorkTime, LogIoDevice,ProcessName, Node) ->
 	erlang:send_after(2000, self(), {print, WorkTime + 2}),
 	receive
 		{print, NewWorkTime} ->
@@ -27,15 +27,17 @@ loop(WorkTime, LogIoDevice, SuccessIoDevice,ProcessName, Node) ->
 			io:format("now: ~p~n", [calendar:now_to_local_time(os:timestamp())]),
 			case NewWorkTime >= 30 of
 				true ->
+					{ok, SuccessIoDevice} = file:open(?SUCCESS_FILE_PATH, [append, binary]),
 					OutPutString = io_lib:format("i finish my work --> ~p~n", [NewWorkTime]),
 					io:format(SuccessIoDevice, "~s",[list_to_binary(OutPutString)]),
-					{ProcessName,Node} ! {log,list_to_binary(OutPutString)}, % 因为不需要监控进程回送消息给我们，所以不传自己的地址
+					file:close(SuccessIoDevice),
+					{ProcessName,Node} ! {success, ?SUCCESS_FILE_PATH}, % 因为不需要监控进程回送消息给我们，所以不传自己的地址
 					ok;
 				false ->
 					OutPutString = io_lib:format("i am working ~p~n", [NewWorkTime]),
 					io:format(LogIoDevice, "~s", [list_to_binary(OutPutString)]),
 					{ProcessName,Node} ! {log,list_to_binary(OutPutString)}, % 因为不需要监控进程回送消息给我们，所以不传自己的地址
-					loop(NewWorkTime, LogIoDevice, SuccessIoDevice,ProcessName,Node)
+					loop(NewWorkTime, LogIoDevice,ProcessName,Node)
 			end
 	end.
 
